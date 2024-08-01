@@ -37,6 +37,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    # local apps
+    'orders.apps.OrdersConfig',
+    
+    # 3rd party apps
+    'rest_framework',
 ]
 
 MIDDLEWARE = [
@@ -77,6 +83,14 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
+    }
+}
+
+
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.db.DatabaseCache",
+        "LOCATION": "cart_cache"  # creating a cache for cart to for order items when order wil be placed
     }
 }
 
