@@ -1,10 +1,8 @@
 from django.shortcuts import render
-from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 from rest_framework import status
-from . models import FoodItem, Order, OrderItem
+from .models import FoodItem, Order as OrderModel, OrderItem
 from . serializers import CartSerializer
 from django.http import Http404
 from django.core.cache import cache
@@ -22,7 +20,7 @@ class CartItems(APIView):
         food_item = FoodItem.objects.get(id=food_id)
 
         ## setting new cart for Prince only if there's none existing
-        my_cart = cache.add(key=cart_owner, value={"customer_name": "prince igwe", "items": [] }, timeout=1200)
+        cache.add(key=cart_owner, value={"customer_name": "prince igwe", "items": [] }, timeout=1200)
 
         ## add food item to cart
         my_cart_items = cache.get(cart_owner)['items']
@@ -41,10 +39,20 @@ class CartItems(APIView):
 
 
 class Order(APIView):
+  # place an order
   def post(self, request):
     my_cart = cache.get(key=cart_owner)
-    order = Order.objects.create(customer_name=my_cart['customer_name'])
+    order = OrderModel.objects.create(customer_name=my_cart['customer_name'])
     order.save()
 
     my_cart_items = cache.get(cart_owner)['items']
-    # for item in my_cart_items:
+    for item in my_cart_items:
+      item_name = item['name']
+      item_quantity = item['quantity']
+      item_unit_price = item['price']
+      price = item_unit_price * item_quantity
+
+      order_item = OrderItem.objects.create(name=item_name, quantity=item_quantity, unit_price=item_unit_price, price=price, order=order)
+      order_item.save()
+    
+    return Response({"message": "Order has been placed for delivery."}, status=status.HTTP_200_OK)
