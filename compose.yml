@@ -22,9 +22,28 @@ services:
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092 #  makes Kafka accessible outside the container to clients on the Docker host
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-    volumes:
-      - ./kafka-data:/var/lib/kafka/data
+  
+
+  kafka_cli:
+    image: confluentinc/cp-kafka:latest
+    container_name: kafka_cli
+    depends_on:
+      - kafka
+    entrypoint: ["/bin/sh", "-c"] # this runs an executable script in the Kafka Docker container followed by the next set of arguments after it. In this case, kafka-topics is the script.
+    command: |
+      "
+      sleep 15
+      echo -e 'creating kafka topic for async communication. Setting retention time to 30 minutes in milliseconds(Default is 7 days)'
+      kafka-topics --bootstrap-server kafka:9092   --create --if-not-exists --topic orders --replication-factor 1 --partitions 1 --config retention.ms=1800000
+
+      echo -e 'Topic created'
+      kafka-topics --bootstrap-server kafka:9092   --list
+
+      kafka-topics --describe --bootstrap-server kafka:9092  --topic orders
+
+      "
+  
