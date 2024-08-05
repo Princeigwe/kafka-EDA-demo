@@ -6,6 +6,7 @@ from .models import FoodItem, Order as OrderModel, OrderItem
 from . serializers import CartSerializer
 from django.http import Http404
 from django.core.cache import cache
+from utils.kafka import producer
 
 # Create your views here.
 
@@ -42,6 +43,7 @@ class Order(APIView):
   # place an order
   def post(self, request):
     my_cart = cache.get(key=cart_owner)
+    ordered_items = []
     order = OrderModel.objects.create(customer_name=my_cart['customer_name'])
     order.save()
 
@@ -54,5 +56,13 @@ class Order(APIView):
 
       order_item = OrderItem.objects.create(name=item_name, quantity=item_quantity, unit_price=item_unit_price, price=price, order=order)
       order_item.save()
+
+      
+      ordered_item = { "name": item_name, "quantity": item_quantity }
+      ordered_items.append(ordered_item)
+    
+    cache.delete(cart_owner)
+    
+    producer.update_inventory(ordered_items)
     
     return Response({"message": "Order has been placed for delivery."}, status=status.HTTP_200_OK)

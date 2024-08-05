@@ -37,13 +37,10 @@ services:
     command: |
       "
       sleep 15
-      echo -e 'creating kafka topic for async communication. Setting retention time to 30 minutes in milliseconds(Default is 7 days)'
       kafka-topics --bootstrap-server kafka:9092   --create --if-not-exists --topic orders --replication-factor 1 --partitions 1 --config retention.ms=1800000
-
       echo -e 'Topic created'
       kafka-topics --bootstrap-server kafka:9092   --list
-
       kafka-topics --describe --bootstrap-server kafka:9092  --topic orders
-
+      
       "
   
