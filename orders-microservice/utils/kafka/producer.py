@@ -14,7 +14,5 @@ def update_inventory(ordered_items):
   try:
     metadata = future.get()
     print(metadata)
-    # print(" ")
-    # print(f" {ordered_items}'s ordered items sent")
   except KafkaError as e:
     print(e)
