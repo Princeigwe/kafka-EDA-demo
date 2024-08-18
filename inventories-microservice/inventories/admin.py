@@ -6,4 +6,4 @@ from .models import FoodItemInventory
 
 @admin.register(FoodItemInventory)
 class FoodItemInventoryAdmin(admin.ModelAdmin):
-  list_display = ["name", "quantity"]
+  list_display = ["id", "name", "quantity"]
